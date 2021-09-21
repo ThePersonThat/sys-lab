@@ -27,6 +27,26 @@ public class ImageHandler {
         return imageMatrix;
     }
 
+    public static BufferedImage imageFromLearningMatrix(Image image) {
+        int width = (int)image.getImage().getWidth();
+        int height = (int)image.getImage().getHeight();
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        boolean[][] matrix = image.getLearningMatrix();
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                int color = 0;
+
+                if (matrix[i][j]) {
+                    color = 0xffffff;
+                }
+
+                bufferedImage.setRGB(i, j, color);
+            }
+        }
+
+        return bufferedImage;
+    }
 
     private int[][] getImageBytes(BufferedImage image) {
         byte[] bytes = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
