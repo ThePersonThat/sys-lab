@@ -37,7 +37,28 @@ public class ImageHandler {
             for (int j = 0; j < width; j++) {
                 int color = 0;
 
-                if (matrix[i][j]) {
+                if (!matrix[i][j]) {
+                    color = 0xffffff;
+                }
+
+                bufferedImage.setRGB(i, j, color);
+            }
+        }
+
+        return bufferedImage;
+    }
+
+    public static BufferedImage imageFromVector(Image image) {
+        boolean[] vector = image.getReferenceVector();
+        int width = vector.length;
+        int height = 30;
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int color = 0;
+
+                if (!vector[i]) {
                     color = 0xffffff;
                 }
 
