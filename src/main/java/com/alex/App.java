@@ -10,9 +10,10 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 public class App extends Application {
-    public static final int height = 900;
+    public static final int height = 1050;
     public static final int width = 450;
 
     public static void main(String[] args) {
@@ -32,12 +33,15 @@ public class App extends Application {
     public Pane build() {
         Image image = getImage("1.bmp");
         Image image2 = getImage("2.bmp");
+        List<Image> images = Arrays.asList(image, image2);
         LearningMatrixHandler matrixHandler = new LearningMatrixHandler(image.getVector(), 70, 70);
-        matrixHandler.setMatrixList(Arrays.asList(image, image2));
+        matrixHandler.setMatrixList(images);
+
 
         WindowBuilder builder = new WindowBuilder(250);
         builder.addTab(image);
         builder.addTab(image2);
+        builder.buildTable(images, matrixHandler.getDifference());
 
         return builder.getRootPane();
     }
