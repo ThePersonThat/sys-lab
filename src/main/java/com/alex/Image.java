@@ -15,6 +15,9 @@ public class Image {
     private javafx.scene.image.Image image;
     private List<int[]> distances;
     private List<int[]> countElementsInRadius;
+    private List<double[]> d1List;
+    private List<double[]> alphaAndBetaList;
+    private Chars chars;
 
     public Image(String filename) {
         this.filename = filename;
@@ -50,7 +53,6 @@ public class Image {
         return referenceVector;
     }
 
-
     public void addDistance(int[] distance) {
         if (distances == null) {
             distances = new ArrayList<>();
@@ -83,6 +85,38 @@ public class Image {
         return countElementsInRadius;
     }
 
+    public void addD1(double[] d1) {
+        if (d1List == null) {
+            d1List = new ArrayList<>();
+        }
+
+        d1List.add(d1);
+    }
+
+    public List<double[]> getD1List() {
+        if (d1List.size() == 0) {
+            throw new NullPointerException();
+        }
+
+        return d1List;
+    }
+
+    public void addAb(double[] ab) {
+        if (alphaAndBetaList == null) {
+            alphaAndBetaList = new ArrayList<>();
+        }
+
+        alphaAndBetaList.add(ab);
+    }
+
+    public List<double[]> getAlphaAndBetaList() {
+        if (alphaAndBetaList.size() == 0) {
+            throw new NullPointerException();
+        }
+
+        return alphaAndBetaList;
+    }
+
     public int[] getVector() {
         return vector;
     }
@@ -106,6 +140,60 @@ public class Image {
         } catch (MalformedURLException e) {
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+
+    public void setChars(double[] alpha, double[] betta, double[] d1, double[] d2, double[] kulbak, double[] chenon) {
+        this.chars = new Chars(alpha, betta, d1, d2, kulbak, chenon);
+    }
+
+    public Chars getChars() {
+        if (chars == null) {
+            throw new NullPointerException();
+        }
+
+        return chars;
+    }
+
+    public class Chars {
+        private double[] alpha;
+        private double[] betta;
+        private double[] d1;
+        private double[] d2;
+        private double[] kulbak;
+        private double[] chenon;
+
+        public Chars(double[] alpha, double[] betta, double[] d1, double[] d2, double[] kulbak, double[] chenon) {
+            this.alpha = alpha;
+            this.betta = betta;
+            this.d1 = d1;
+            this.d2 = d2;
+            this.kulbak = kulbak;
+            this.chenon = chenon;
+        }
+
+        public double[] getD1() {
+            return d1;
+        }
+
+        public double[] getD2() {
+            return d2;
+        }
+
+        public double[] getAlpha() {
+            return alpha;
+        }
+
+        public double[] getBetta() {
+            return betta;
+        }
+
+        public double[] getChenon() {
+            return chenon;
+        }
+
+        public double[] getKulbak() {
+            return kulbak;
         }
     }
 }

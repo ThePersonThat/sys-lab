@@ -27,6 +27,8 @@ public class LearningMatrixHandler {
         setVectorList();
         calculateDistance();
         calculateElementsInRadius();
+        calculateD1();
+        calculateByFormulas();
     }
 
     public boolean[][] getLearningMatrix(int[][] imageMatrix) {
@@ -79,6 +81,111 @@ public class LearningMatrixHandler {
             }
         }
     }
+
+    private void calculateD1() {
+        for (int i = 0; i < imageList.size(); i++) {
+            Image image = imageList.get(i);
+            List<int[]> elemsInRadius = image.getCountElementsInRadius();
+
+            for (int j = 0; j < elemsInRadius.size(); j++) {
+                int[] elems = elemsInRadius.get(j);
+                double[] d = new double[elems.length];
+                double[] ab = new double[elems.length]; // alpha and beta
+
+                for (int k = 0; k < elems.length; k++) {
+                    if (i == j) {
+                        d[k] = roundAvoid((double) elems[k] / (double) elems.length);
+                        ab[k] = roundAvoid(1 - ((double) elems[k] / (double) elems.length));
+                    } else {
+                        d[k] = roundAvoid(1 - ((double) elems[k] / (double) elems.length));
+                        ab[k] = roundAvoid((double) elems[k] / (double) elems.length);
+                    }
+                }
+
+                image.addD1(d);
+                image.addAb(ab);
+            }
+        }
+    }
+
+    private void calculateByFormulas() {
+        for (int i = 0; i < imageList.size(); i++) {
+            Image image = imageList.get(i);
+            List<double[]> alphaAndBettaList = image.getAlphaAndBetaList();
+            List<double[]> dList = image.getD1List();
+            double[] alpha = null;
+            double[] betta = null;
+            double[] d1 = null;
+            double[] d2 = null;
+
+            for (int j = 0; j < dList.size(); j++) {
+                if (j == i) {
+                    alpha = alphaAndBettaList.get(j);
+                    d1 = dList.get(j);
+                } else {
+                    betta = alphaAndBettaList.get(j);
+                    d2 = dList.get(j);
+                }
+            }
+
+            image.setChars(alpha, betta, d1, d2,
+                    calculateByKulbakFormula(alpha, betta, d1, d2),
+                    calculateByShenonFormula(alpha, betta, d1, d2));
+        }
+    }
+
+    private double[] calculateByKulbakFormula(double[] alpha, double[] betta, double[] d1, double[] d2) {
+        double[] e = new double[alpha.length];
+
+        for (int i = 0; i < alpha.length; i++) {
+            if (d1[i] > 0.5 && d2[i] > 0.5) {
+                e[i] = (Math.log((2 - (alpha[i] + betta[i])) / (alpha[i] + betta[i])) / Math.log(2)) * (1 - (alpha[i] + betta[i]));
+            } else {
+                e[i] = 0;
+            }
+        }
+
+        return e;
+    }
+
+    private double[] calculateByShenonFormula(double[] alpha, double[] betta, double[] d1, double[] d2) {
+        double[] e = new double[alpha.length];
+
+        for (int i = 0; i < alpha.length; i++) {
+            if (d1[i] > 0.5 && d2[i] > 0.5) {
+                double alphaResult = alpha[i] / (alpha[i] + d2[i]);
+                double bettaResult = betta[i] / (betta[i] + d1[i]);
+                double d1Result = d1[i] / (d1[i] + betta[i]);
+                double d2Result = d2[i] / (d2[i] + alpha[i]);
+
+                e[i] = 1 + 0.5 * ((alphaResult * log2(alphaResult)) + (bettaResult * log2(bettaResult)) + (d1Result * log2(d1Result)) + (d2Result * (log2(d2Result))));
+            } else {
+                e[i] = 0;
+            }
+        }
+
+        return e;
+    }
+
+    private void show(String name, double[] arr) {
+        System.out.println("============ " + name + " ================");
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print(arr[i] + " ");
+        }
+
+        System.out.println();
+    }
+
+
+    private double log2(double n) {
+        return n == 0 ? 0 : Math.log(n) / Math.log(2);
+    }
+
+    private double roundAvoid(double value) {
+        double scale = Math.pow(10, 3);
+        return Math.round(value * scale) / scale;
+    }
+
 
     private void calculateDistance() {
         List<boolean[]> vectors = new ArrayList<>();

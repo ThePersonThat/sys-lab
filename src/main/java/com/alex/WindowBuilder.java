@@ -4,6 +4,9 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -105,23 +108,91 @@ public class WindowBuilder {
         VBox box = buildVbox(15);
         box.setPrefWidth(App.width);
         box.setPrefHeight(App.height);
-        box.setPadding(new Insets(0, 20, 0, 20));
-
+        box.setPadding(new Insets(20));
 
         box.getChildren().add(buildImageViews(image));
-        box.getChildren().add(buildImageMatrixTextArea(image));
-        box.getChildren().add(buildLearningMatrixTextArea(image));
+        box.getChildren().add(buildMatrixs(image));
         box.getChildren().add(buildReferenceVector(image));
         box.getChildren().addAll(buildSk(image));
+        box.getChildren().add(buildChars(image));
+        box.getChildren().add(buildCharts(image));
 
         return box;
+    }
+
+    private Node buildChars(Image image) {
+        StringBuilder text = new StringBuilder();
+
+        Image.Chars chars = image.getChars();
+        double[] alpha = chars.getAlpha();
+        double[] betta = chars.getBetta();
+        double[] d1 = chars.getD1();
+        double[] d2 = chars.getD2();
+        double[] shenon = chars.getChenon();
+        double[] kulbak = chars.getKulbak();
+
+        text.append(String.format("%s%14s%12s%16s%21s%16s%n", "alpha", "betta", "d1", "d2", "KFE Шенон", "KFE Кульбак"));
+
+        for (int i = 0; i < alpha.length; i++) {
+            text.append(String.format("%.2f%15.2f%15.2f%15.2f%15.3f%15.3f%n", alpha[i], betta[i], d1[i], d2[i], shenon[i], kulbak[i]));
+        }
+
+        VBox vBox = (VBox) buildLabelTextArea(150, text.toString(), "");
+        vBox.setPrefWidth(30);
+        vBox.setFillWidth(false);
+
+        return buildLabel("Характеристики зображення", vBox);
+    }
+
+    private Node buildMatrixs(Image image) {
+        Node imageMatrix = buildImageMatrixTextArea(image);
+        Node learningMatrix = buildLearningMatrixTextArea(image);
+
+        HBox hBox = new HBox(30, imageMatrix, learningMatrix);
+        hBox.setPrefHeight(matrixHeight);
+
+        return hBox;
+    }
+
+    private Node buildCharts(Image image) {
+        Image.Chars chars = image.getChars();
+        double[] chenon = chars.getChenon();
+        double[] kulbak = chars.getKulbak();
+        Node chenonChart = buildLabel("График по формулi Шенона", buildOneChart(chenon));
+        Node kulbakChart = buildLabel("График по формулi Кульбака", buildOneChart(kulbak));
+
+        return new HBox(chenonChart, kulbakChart);
+    }
+
+    private Node buildOneChart(double[] KFE) {
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("d");
+        yAxis.setLabel("KFE");
+
+        LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        lineChart.setScaleX(0.85);
+        lineChart.setScaleY(0.85);
+        lineChart.setPrefHeight(300);
+        lineChart.setPadding(Insets.EMPTY);
+        lineChart.setLegendVisible(false);
+
+        XYChart.Series<Number, Number> chart = new XYChart.Series<>();
+        chart.setName("");
+
+        for (int i = 0; i < KFE.length; i++) {
+            chart.getData().add(new XYChart.Data<>(i, KFE[i]));
+        }
+
+        lineChart.getData().add(chart);
+
+        return lineChart;
     }
 
     private Node buildImageViews(Image image) {
         ImageView view1 = new ImageView(image.getImage());
         ImageView view2 = new ImageView(new javafx.scene.image.Image("/arrow.png"));
         ImageView view3 = new ImageView(SwingFXUtils.toFXImage(ImageHandler.imageFromLearningMatrix(image), null));
-
 
         view2.setFitWidth(100);
         view2.setFitHeight(100);
@@ -133,18 +204,17 @@ public class WindowBuilder {
         return box;
     }
 
-    private List<Node> buildSk(Image image) {
-        List<Node> nodes = new ArrayList<>();
+    private Node buildSk(Image image) {
         List<int[]> elements = image.getDistance();
-
+        HBox hBox = new HBox(30);
 
         for (int i = 0; i < elements.size(); i++) {
             String text = i == tabPane.getTabs().size() ? "себе" : "сусiда";
             Node node = buildLabelTextArea(20, vectorToString(elements.get(i)), "Розподiл реалiзацiй для " + text);
-            nodes.add(node);
+            hBox.getChildren().add(node);
         }
 
-        return nodes;
+        return hBox;
     }
 
     private Node buildImageMatrixTextArea(Image image) {

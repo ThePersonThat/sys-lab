@@ -14,7 +14,7 @@ import java.util.List;
 
 public class App extends Application {
     public static final int height = 1050;
-    public static final int width = 450;
+    public static final int width = 800;
 
     public static void main(String[] args) {
         launch(args);
@@ -36,7 +36,6 @@ public class App extends Application {
         List<Image> images = Arrays.asList(image, image2);
         LearningMatrixHandler matrixHandler = new LearningMatrixHandler(image.getVector(), 70, 70);
         matrixHandler.setMatrixList(images);
-
 
         WindowBuilder builder = new WindowBuilder(250);
         builder.addTab(image);
