@@ -19,6 +19,7 @@ public class ImageHandler {
         imageMatrix = getImageBytes(image);
         vector = getVerticalVectors();
     }
+
     public int[] getVectors() {
         return vector;
     }
@@ -28,8 +29,8 @@ public class ImageHandler {
     }
 
     public static BufferedImage imageFromLearningMatrix(Image image) {
-        int width = (int)image.getImage().getWidth();
-        int height = (int)image.getImage().getHeight();
+        int width = (int) image.getImage().getWidth();
+        int height = (int) image.getImage().getHeight();
         BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         boolean[][] matrix = image.getLearningMatrix();
 
@@ -41,7 +42,7 @@ public class ImageHandler {
                     color = 0xffffff;
                 }
 
-                bufferedImage.setRGB(i, j, color);
+                bufferedImage.setRGB(j, i, color);
             }
         }
 
@@ -54,15 +55,15 @@ public class ImageHandler {
         int height = 30;
         BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
                 int color = 0;
 
-                if (!vector[i]) {
+                if (!vector[j]) {
                     color = 0xffffff;
                 }
 
-                bufferedImage.setRGB(i, j, color);
+                bufferedImage.setRGB(j, i, color);
             }
         }
 
