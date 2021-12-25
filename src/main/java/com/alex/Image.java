@@ -18,6 +18,7 @@ public class Image {
     private List<double[]> d1List;
     private List<double[]> alphaAndBetaList;
     private Chars chars;
+    private int indexNeighbor;
 
     public Image(String filename) {
         this.filename = filename;
@@ -153,6 +154,14 @@ public class Image {
         }
 
         return chars;
+    }
+
+    public void setNeighbor(int indexNeighbor) {
+        this.indexNeighbor = indexNeighbor;
+    }
+
+    public int getIndexNeighbor() {
+        return indexNeighbor;
     }
 
     public class Chars {

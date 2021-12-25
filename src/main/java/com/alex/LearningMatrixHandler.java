@@ -25,6 +25,7 @@ public class LearningMatrixHandler {
         }
 
         setVectorList();
+        findNeighbor();
         calculateDistance();
         calculateElementsInRadius();
         calculateD1();
@@ -63,6 +64,35 @@ public class LearningMatrixHandler {
         return radius;
     }
 
+    private void findNeighbor() {
+        for (int i = 0; i < imageList.size(); i++) {
+            Image image = imageList.get(i);
+            int minDifference = 0;
+            int indexNeighbor = -1;
+
+            for (int j = 0; j < imageList.size(); j++) {
+                int difference = compareDifferences(image, imageList.get(j));
+
+                if (minDifference < difference) {
+                    minDifference = difference;
+                    indexNeighbor = j;
+                }
+            }
+
+            if (indexNeighbor == -1) {
+                for (int j = 0; j < imageList.size(); j++) {
+                    if (j != i) {
+                        indexNeighbor = j;
+                        break;
+                    }
+                }
+            }
+
+
+            image.setNeighbor(indexNeighbor);
+        }
+    }
+
     private void calculateElementsInRadius() {
         for (Image image : imageList) {
             for (int[] distance : image.getDistance()) {
@@ -93,7 +123,7 @@ public class LearningMatrixHandler {
                 double[] ab = new double[elems.length]; // alpha and beta
 
                 for (int k = 0; k < elems.length; k++) {
-                    if (i == j) {
+                    if (j == 0) {
                         d[k] = roundAvoid((double) elems[k] / (double) elems.length);
                         ab[k] = roundAvoid(1 - ((double) elems[k] / (double) elems.length));
                     } else {
@@ -119,7 +149,7 @@ public class LearningMatrixHandler {
             double[] d2 = null;
 
             for (int j = 0; j < dList.size(); j++) {
-                if (j == i) {
+                if (j == 0) {
                     alpha = alphaAndBettaList.get(j);
                     d1 = dList.get(j);
                 } else {
@@ -138,11 +168,7 @@ public class LearningMatrixHandler {
         double[] e = new double[alpha.length];
 
         for (int i = 0; i < alpha.length; i++) {
-            if (d1[i] > 0.5 && d2[i] > 0.5) {
-                e[i] = (Math.log((2 - (alpha[i] + betta[i])) / (alpha[i] + betta[i])) / Math.log(2)) * (1 - (alpha[i] + betta[i]));
-            } else {
-                e[i] = 0;
-            }
+            e[i] = 0.5 * (log2((d1[i] + d2[i] + 0.1) / (alpha[i] + betta[i] + 0.1)) * ((d1[i] + d2[i]) - (alpha[i] + betta[i])));
         }
 
         return e;
@@ -152,16 +178,12 @@ public class LearningMatrixHandler {
         double[] e = new double[alpha.length];
 
         for (int i = 0; i < alpha.length; i++) {
-            if (d1[i] > 0.5 && d2[i] > 0.5) {
-                double alphaResult = alpha[i] / (alpha[i] + d2[i]);
-                double bettaResult = betta[i] / (betta[i] + d1[i]);
-                double d1Result = d1[i] / (d1[i] + betta[i]);
-                double d2Result = d2[i] / (d2[i] + alpha[i]);
+            double alphaResult = alpha[i] == 0 ? 0 : (alpha[i] / (alpha[i] + d2[i])) * log2(alpha[i] / (alpha[i] + d2[i]));
+            double bettaResult = betta[i] == 0 ? 0 : (betta[i] / (betta[i] + d1[i])) * log2(betta[i] / (betta[i] + d1[i]));
+            double d1Result = d1[i] == 0 ? 0 : (d1[i] / (d1[i] + betta[i])) * log2(d1[i] / (d1[i] + betta[i]));
+            double d2Result = d2[i] == 0 ? 0 : (d2[i] / (d2[i] + alpha[i])) * log2(d2[i] / (d2[i] + alpha[i]));
 
-                e[i] = 1 + 0.5 * ((alphaResult * log2(alphaResult)) + (bettaResult * log2(bettaResult)) + (d1Result * log2(d1Result)) + (d2Result * (log2(d2Result))));
-            } else {
-                e[i] = 0;
-            }
+            e[i] = 1 + 0.5 * (alphaResult + bettaResult + d1Result + d2Result);
         }
 
         return e;
@@ -178,7 +200,7 @@ public class LearningMatrixHandler {
 
 
     private double log2(double n) {
-        return n == 0 ? 0 : Math.log(n) / Math.log(2);
+        return Math.log(n) / Math.log(2);
     }
 
     private double roundAvoid(double value) {
@@ -188,13 +210,14 @@ public class LearningMatrixHandler {
 
 
     private void calculateDistance() {
-        List<boolean[]> vectors = new ArrayList<>();
-
         for (Image image : imageList) {
+            int indexNeighbor = image.getIndexNeighbor();
+            Image neighbor = imageList.get(indexNeighbor);
+            List<boolean[]> vectors = new ArrayList<>();
+
             vectors.add(image.getReferenceVector());
-        }
+            vectors.add(neighbor.getReferenceVector());
 
-        for (Image image : imageList) {
             for (boolean[] vector : vectors) {
                 int[] distance = calculateDistance(image.getLearningMatrix(), vector);
                 image.addDistance(distance);
@@ -225,7 +248,7 @@ public class LearningMatrixHandler {
         }
     }
 
-    public int getDifference() {
+    /*public int getDifference() {
         int countDifference = 0;
         boolean[] vector = imageList.get(0).getReferenceVector();
 
@@ -237,6 +260,22 @@ public class LearningMatrixHandler {
         }
 
         return countDifference;
+    }*/
+
+    public List<Integer> getDifferences() {
+        List<Integer> differences = new ArrayList<>();
+
+        for (int i = 0; i < imageList.size(); i++) {
+            Image one = imageList.get(i);
+
+            for (int j = i + 1; j < imageList.size(); j++) {
+                Image second = imageList.get(j);
+                int count = compareDifferences(one, second);
+                differences.add(count);
+            }
+        }
+
+        return differences;
     }
 
     private boolean[] getReferenceVector(boolean[][] learningMatrix) {
@@ -284,16 +323,18 @@ public class LearningMatrixHandler {
         return downLimits;
     }
 
-    private boolean compareVectorValueWithList(int index, boolean value) {
-        for (int i = 1; i < imageList.size(); i++) {
-            boolean[] vector = imageList.get(i).getReferenceVector();
+    private int compareDifferences(Image one, Image second) {
+        boolean[] vectorOne = one.getReferenceVector();
+        boolean[] vectorTwo = second.getReferenceVector();
+        int countDifferences = 0;
 
-            if (vector[index] != value) {
-                return false;
+        for (int i = 0; i < vectorOne.length; i++) {
+            if (vectorOne[i] != vectorTwo[i]) {
+                countDifferences++;
             }
         }
 
-        return true;
+        return countDifferences;
     }
 
     private boolean compareValueWithList(int index, int value, List<int[]> list) {
