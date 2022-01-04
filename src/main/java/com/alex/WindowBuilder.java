@@ -44,7 +44,7 @@ public class WindowBuilder {
         return pane;
     }
 
-    public void buildTable(List<Image> images, int difference) {
+    public void buildTable(List<Image> images) {
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(20, 20, 20, 20));
         javafx.scene.image.Image sizeImage = images.get(0).getImage();
@@ -77,11 +77,8 @@ public class WindowBuilder {
                 label.setAlignment(Pos.CENTER);
                 label.setFont(new Font(18));
 
-                if (i == j) {
-                    label.setText("-");
-                } else {
-                    label.setText(Integer.toString(difference));
-                }
+                int distance = images.get(i).getDistance().get(j);
+                label.setText(distance == -1 ? "-" : Integer.toString(distance));
 
                 hBox.getChildren().add(label);
             }
@@ -205,7 +202,7 @@ public class WindowBuilder {
     }
 
     private Node buildSk(Image image) {
-        List<int[]> elements = image.getDistance();
+        List<int[]> elements = image.getSK();
         HBox hBox = new HBox(30);
 
         for (int i = 0; i < elements.size(); i++) {

@@ -26,7 +26,8 @@ public class LearningMatrixHandler {
 
         setVectorList();
         findNeighbor();
-        calculateDistance();
+        calculateSK();
+        calculateDistances();
         calculateElementsInRadius();
         calculateD1();
         calculateByFormulas();
@@ -64,6 +65,56 @@ public class LearningMatrixHandler {
         return radius;
     }
 
+    public void examAlgorithm(Image image) {
+        boolean[][] learningMatrix = getLearningMatrix(image.getImageMatrix());
+        double maxMu = 0;
+        int index = -1;
+
+        for (int i = 0; i < imageList.size(); i++) {
+            Image img = imageList.get(i);
+            boolean[] referenceVector = img.getReferenceVector();
+            int[] ints = calculateDistance(learningMatrix, referenceVector);
+            double[] mu = new double[ints.length];
+            double averageMu = 0;
+            int optRadius = getOptRadius(img);
+
+            for (int j = 0; j < ints.length; j++) {
+                mu[j] = 1 - (double) ints[j] / optRadius;
+                averageMu += mu[j];
+            }
+
+            averageMu /= ints.length;
+
+            System.out.println("index: " + i + " = " + averageMu);
+
+            if (averageMu > maxMu) {
+                maxMu = averageMu;
+                index = i;
+            }
+        }
+
+        if (maxMu > 0) {
+            System.out.println("The image is related to " + (index + 1) + " class");
+        } else {
+            System.out.println("The image is unknown");
+        }
+    }
+
+    private int getOptRadius(Image image) {
+        double[] kfe = image.getChars().getKulbak();
+        double max = 0;
+        int index = -1;
+
+        for (int i = 0; i < kfe.length; i++) {
+            if (kfe[i] > max) {
+                max = kfe[i];
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
     private void findNeighbor() {
         for (int i = 0; i < imageList.size(); i++) {
             Image image = imageList.get(i);
@@ -95,7 +146,7 @@ public class LearningMatrixHandler {
 
     private void calculateElementsInRadius() {
         for (Image image : imageList) {
-            for (int[] distance : image.getDistance()) {
+            for (int[] distance : image.getSK()) {
                 int[] elementsInRadius = new int[distance.length];
 
                 for (int i = 0; i < distance.length; i++) {
@@ -209,7 +260,7 @@ public class LearningMatrixHandler {
     }
 
 
-    private void calculateDistance() {
+    private void calculateSK() {
         for (Image image : imageList) {
             int indexNeighbor = image.getIndexNeighbor();
             Image neighbor = imageList.get(indexNeighbor);
@@ -220,7 +271,7 @@ public class LearningMatrixHandler {
 
             for (boolean[] vector : vectors) {
                 int[] distance = calculateDistance(image.getLearningMatrix(), vector);
-                image.addDistance(distance);
+                image.addSK(distance);
             }
         }
     }
@@ -248,34 +299,34 @@ public class LearningMatrixHandler {
         }
     }
 
-    /*public int getDifference() {
-        int countDifference = 0;
-        boolean[] vector = imageList.get(0).getReferenceVector();
+    private boolean compareVectorValueWithList(int index, boolean value) {
+        for (int i = 1; i < imageList.size(); i++) {
+            boolean[] vector = imageList.get(i).getReferenceVector();
 
-        for (int j = 0; j < vector.length; j++) {
-            boolean value = vector[j];
-            if (!compareVectorValueWithList(j, value)) {
-                countDifference++;
+            if (vector[index] != value) {
+                return false;
             }
         }
 
-        return countDifference;
-    }*/
+        return true;
+    }
 
-    public List<Integer> getDifferences() {
-        List<Integer> differences = new ArrayList<>();
-
+    private void calculateDistances() {
         for (int i = 0; i < imageList.size(); i++) {
-            Image one = imageList.get(i);
+            List<Integer> differences = new ArrayList<>();
+            Image image = imageList.get(i);
 
-            for (int j = i + 1; j < imageList.size(); j++) {
-                Image second = imageList.get(j);
-                int count = compareDifferences(one, second);
-                differences.add(count);
+            for (int j = 0; j < imageList.size(); j++) {
+                if (i == j) {
+                    differences.add(-1);
+                } else {
+                    int difference = compareDifferences(image, imageList.get(j));
+                    differences.add(difference);
+                }
             }
-        }
 
-        return differences;
+            image.setDistance(differences);
+        }
     }
 
     private boolean[] getReferenceVector(boolean[][] learningMatrix) {
@@ -301,6 +352,8 @@ public class LearningMatrixHandler {
 
         return vector;
     }
+
+
 
     private int[] getUpEdge(int[] vector) {
         int[] upLimits = new int[vector.length];

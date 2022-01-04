@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,47 +32,33 @@ public class App extends Application {
     }
 
     public Pane build() {
-        Image image = getImage("1.bmp");
-        Image image2 = getImage("2.bmp");
-        Image image3 = getImage("3.bmp");
-        List<Image> images = Arrays.asList(image, image2, image3);
+        String[] names = {
+                "1.bmp", "2.bmp", "3.bmp"
+        };
 
-        List<Double> optimized = optimize();
+        List<Image> images = new ArrayList<>();
 
-        LearningMatrixHandler matrixHandler = new LearningMatrixHandler(image.getVector(),
+        for (String name : names) {
+            images.add(getImage(name));
+        }
+
+        List<Double> optimized = optimize(names);
+
+        LearningMatrixHandler matrixHandler = new LearningMatrixHandler(images.get(0).getVector(),
                 optimized.get(1).intValue(), optimized.get(1).intValue());
 
         matrixHandler.setMatrixList(images);
+        matrixHandler.examAlgorithm(getImage("4.bmp"));
 
         WindowBuilder builder = new WindowBuilder(250);
-        builder.addTab(image);
-        builder.addTab(image2);
 
-        List<Integer> differences = matrixHandler.getDifferences();
-        int k = 0;
-        /*for (int i = 0; i < 4; i++) {
-            for (int j = i + 1; j < 4; j++, k++) {
-                System.out.println((i + 1) + " - " + (j + 1));
-                System.out.println("Vectors: ");
-                System.out.println(vectorToString(images.get(i).getReferenceVector()));
-                System.out.println(vectorToString(images.get(j).getReferenceVector()));
-                System.out.println("Difference: " + differences.get(k));
-                System.out.println("=====================================");
-            }
-        }*/
-//        builder.buildTable(images, matrixHandler.getDifference());
-
-        return builder.getRootPane();
-    }
-
-    private String vectorToString(boolean[] vector) {
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 0; i < vector.length; i++) {
-            builder.append(vector[i] ? 1 : 0).append(" ");
+        for (int i = 0; i < images.size(); i++) {
+            builder.addTab(images.get(i));
         }
 
-        return builder.toString();
+        builder.buildTable(images);
+
+        return builder.getRootPane();
     }
 
     public Image getImage(String filename) {
@@ -88,55 +75,59 @@ public class App extends Application {
         return image;
     }
 
-    private List<Double> optimize() {
+    private List<Double> optimize(String[] names) {
         int deltaI = 0;
         double averageKfe;
         double maxAverageKfe = 0;
+        List<Image> images;
 
         for (int i = 0; i < 100; i++) {
-                Image image = getImage("1.bmp");
-                Image image2 = getImage("2.bmp");
-                Image image3 = getImage("3.bmp");
-                List<Image> images = Arrays.asList(image, image2, image3);
-                LearningMatrixHandler matrixHandler = new LearningMatrixHandler(image.getVector(), i, i);
-                matrixHandler.setMatrixList(images);
-                averageKfe = 0;
 
-                for (int k = 0; k < images.size(); k++) {
-                    Image currentImage = images.get(k);
-                    double[] d1 = currentImage.getChars().getD1();
-                    double[] betta = currentImage.getChars().getBetta();
-                    double[] kfe = currentImage.getChars().getKulbak();
-                    double maxKfe = 0;
-                    boolean wasFind = false;
+            images = new ArrayList<>();
 
+            for (int j = 0; j < names.length; j++) {
+                images.add(getImage(names[j]));
+            }
+
+            LearningMatrixHandler matrixHandler = new LearningMatrixHandler(images.get(0).getVector(), i, i);
+            matrixHandler.setMatrixList(images);
+            averageKfe = 0;
+
+            for (int k = 0; k < images.size(); k++) {
+                Image currentImage = images.get(k);
+                double[] d1 = currentImage.getChars().getD1();
+                double[] betta = currentImage.getChars().getBetta();
+                double[] kfe = currentImage.getChars().getKulbak();
+                double maxKfe = 0;
+                boolean wasFind = false;
+
+                for (int d = 0; d < kfe.length; d++) {
+                    if (d1[d] > 0.5 && betta[d] < 0.5) {
+                        if (kfe[d] > maxKfe) {
+                            maxKfe = kfe[d];
+                        }
+
+                        wasFind = true;
+                    }
+                }
+
+                if (!wasFind) {
                     for (int d = 0; d < kfe.length; d++) {
-                        if (d1[d] > 0.5 && betta[d] < 0.5) {
-                            if (kfe[d] > maxKfe) {
-                                maxKfe = kfe[d];
-                            }
-
-                            wasFind = true;
+                        if (kfe[d] > maxKfe) {
+                            maxKfe = kfe[d];
                         }
                     }
-
-                    if (!wasFind) {
-                        for (int d = 0; d < kfe.length; d++) {
-                            if (kfe[d] > maxKfe) {
-                                maxKfe = kfe[d];
-                            }
-                        }
-                    }
-
-                    averageKfe += maxKfe;
                 }
 
-                averageKfe /= images.size();
+                averageKfe += maxKfe;
+            }
 
-                if (averageKfe > maxAverageKfe) {
-                    maxAverageKfe = averageKfe;
-                    deltaI = i;
-                }
+            averageKfe /= images.size();
+
+            if (averageKfe > maxAverageKfe) {
+                maxAverageKfe = averageKfe;
+                deltaI = i;
+            }
         }
 
         System.out.println("Max kfe = " + maxAverageKfe + " DeltaI = " + deltaI);

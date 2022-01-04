@@ -13,12 +13,13 @@ public class Image {
     private boolean[] referenceVector;
     private boolean[][] learningMatrix;
     private javafx.scene.image.Image image;
-    private List<int[]> distances;
+    private List<int[]> sk;
     private List<int[]> countElementsInRadius;
     private List<double[]> d1List;
     private List<double[]> alphaAndBetaList;
     private Chars chars;
     private int indexNeighbor;
+    private List<Integer> distance;
 
     public Image(String filename) {
         this.filename = filename;
@@ -54,20 +55,20 @@ public class Image {
         return referenceVector;
     }
 
-    public void addDistance(int[] distance) {
-        if (distances == null) {
-            distances = new ArrayList<>();
+    public void addSK(int[] sks) {
+        if (sk == null) {
+            sk = new ArrayList<>();
         }
 
-        distances.add(distance);
+        sk.add(sks);
     }
 
-    public List<int[]> getDistance() {
-        if (distances.size() == 0) {
+    public List<int[]> getSK() {
+        if (sk.size() == 0) {
             throw new NullPointerException();
         }
 
-        return distances;
+        return sk;
     }
 
     public void addRadiusElem(int[] elems) {
@@ -162,6 +163,14 @@ public class Image {
 
     public int getIndexNeighbor() {
         return indexNeighbor;
+    }
+
+    public List<Integer> getDistance() {
+        return distance;
+    }
+
+    public void setDistance(List<Integer> distance) {
+        this.distance = distance;
     }
 
     public class Chars {
